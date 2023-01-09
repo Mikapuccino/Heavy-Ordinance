@@ -17,7 +17,7 @@ class HeavyOrdinance:
         self.font = pygame.font.Font(None, 64)
         self.phrase = ""
         self.cannonballs = []
-        self.player = Player((500, 190))
+        self.player = Player((500, 190), self.cannonballs.append)
         self.boats = []
 
         self.start = False
@@ -115,8 +115,6 @@ class HeavyOrdinance:
     def inputLogic(self):
 
         events = pygame.event.get()
-        mouse_pos = pygame.mouse.get_pos()
-        angle = 360 - math.atan2(mouse_pos[1] - 300, mouse_pos[0] - 400) * 180 / math.pi
 
         if self.cooldown == False:
 
@@ -132,7 +130,8 @@ class HeavyOrdinance:
 
             if self.phrase != "GAME OVER":
 
-                if evt.type == pygame.KEYDOWN and evt.key == pygame.K_SPACE and self.cooldown == True:
+                if evt.type == pygame.MOUSEBUTTONUP and self.cooldown == True:
+
                     self.player.shoot()
                     self.cooldown = False
                     self.lastShot = pygame.time.get_ticks()
@@ -141,7 +140,16 @@ class HeavyOrdinance:
 
     def gameLogic(self):
 
-        pass
+        for gameObject in self.get_GameObject():
+
+            gameObject.move()
+
+        for cannonball in  self.cannonballs[:]:
+            timePassed = pygame.time.get_ticks()
+            cannonballTime = cannonball.timeShot
+            if timePassed >= cannonballTime + 4000:
+                self.cannonballs.remove(cannonball)
+                break
 
     def draw(self):
 
@@ -326,7 +334,7 @@ class HeavyOrdinance:
 
         self.phrase = ""
         self.cannonballs = []
-        self.player = Player((500, 190))
+        self.player = Player((500, 190), self.cannonballs.append)
         self.boats = []
 
         self.cooldown = True
@@ -343,13 +351,17 @@ class GameObject:
 
         self.pos = Vector2(pos)
         self.sprite = sprite
-        self.velocity = velocity
+        self.velocity = Vector2(velocity)
         self.radius = sprite.get_width() / 2
 
     def draw(self, surface):
 
         blitPos = self.pos - Vector2(self.radius)
         surface.blit(self.sprite, blitPos)
+
+    def move(self):
+
+        self.pos = self.pos + self.velocity
 
     def collision(self, otherObj):
 
@@ -358,10 +370,10 @@ class GameObject:
 
 class Player(GameObject):
 
-    CannonballSpeed = 0
+    CannonballSpeed = 2
 
-    def __init__(self, pos):
-        #self.create_bullet_callback = create_cannonball_callback
+    def __init__(self, pos, create_cannonball_callback):
+        self.create_cannonball_callback = create_cannonball_callback
         self.direction = Vector2(UP)
         super().__init__(pos, load_sprite("PlayerShip"), Vector2(0))
 
@@ -372,11 +384,18 @@ class Player(GameObject):
         rotatedSurface = rotozoom(self.sprite, angle, 1.0)
         rotatedSurfaceSize = Vector2(rotatedSurface.get_size())
         blitPos = self.pos - rotatedSurfaceSize * 0.5
+        self.direction.rotate_ip(angle)
         surface.blit(rotatedSurface, blitPos)
     
     def shoot(self):
 
-        pass
+        #mouse_pos = pygame.mouse.get_pos()
+        #angle = 360 - math.atan2(mouse_pos[1] - 190, mouse_pos[0] - 500) * 180 / math.pi
+
+        cannonballVelocity = self.direction * self.CannonballSpeed
+        timeShot = pygame.time.get_ticks()
+        cannonball = Cannonball(self.pos, cannonballVelocity, timeShot)
+        self.create_cannonball_callback(cannonball)
 
 class Boat(GameObject):
 
@@ -390,7 +409,6 @@ class Boat(GameObject):
 
 class Cannonball(GameObject):
     def __init__(self, pos, velocity, timeShot):
-        super().__init__(pos, load_sprite("Cannonball"))
+        super().__init__(pos, load_sprite("Bullet"), velocity)
 
-        self.velocity = Vector2(velocity)
         self.timeShot = timeShot
