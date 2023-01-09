@@ -1,7 +1,9 @@
 import pygame
+import math
 from pygame.math import Vector2
 from pygame.transform import rotozoom
 from Functions import *
+
 
 UP = Vector2(0, -1)
 
@@ -15,7 +17,7 @@ class HeavyOrdinance:
         self.font = pygame.font.Font(None, 64)
         self.phrase = ""
         self.cannonballs = []
-        self.player = None
+        self.player = Player((500, 190))
         self.boats = []
 
         self.start = False
@@ -113,6 +115,8 @@ class HeavyOrdinance:
     def inputLogic(self):
 
         events = pygame.event.get()
+        mouse_pos = pygame.mouse.get_pos()
+        angle = 360 - math.atan2(mouse_pos[1] - 300, mouse_pos[0] - 400) * 180 / math.pi
 
         if self.cooldown == False:
 
@@ -132,6 +136,8 @@ class HeavyOrdinance:
                     self.player.shoot()
                     self.cooldown = False
                     self.lastShot = pygame.time.get_ticks()
+        
+
 
     def gameLogic(self):
 
@@ -320,7 +326,7 @@ class HeavyOrdinance:
 
         self.phrase = ""
         self.cannonballs = []
-        self.player = None
+        self.player = Player((500, 190))
         self.boats = []
 
         self.cooldown = True
@@ -333,10 +339,11 @@ class HeavyOrdinance:
 
 class GameObject:
 
-    def __init__(self, pos, sprite):
+    def __init__(self, pos, sprite, velocity):
 
         self.pos = Vector2(pos)
         self.sprite = sprite
+        self.velocity = velocity
         self.radius = sprite.get_width() / 2
 
     def draw(self, surface):
@@ -353,18 +360,23 @@ class Player(GameObject):
 
     CannonballSpeed = 0
 
-    def __init__(self, pos, create_cannonball_callback):
-        self.create_bullet_callback = create_cannonball_callback
+    def __init__(self, pos):
+        #self.create_bullet_callback = create_cannonball_callback
         self.direction = Vector2(UP)
-        super().__init__(pos, load_sprite("PlayerCannon"), Vector2(0))
+        super().__init__(pos, load_sprite("PlayerShip"), Vector2(0))
 
     def draw(self, surface):
 
-        angle = self.direction.angle_to(UP)
+        mouse_pos = pygame.mouse.get_pos()
+        angle = 360 - math.atan2(mouse_pos[1] - 190, mouse_pos[0] - 500) * 180 / math.pi
         rotatedSurface = rotozoom(self.sprite, angle, 1.0)
         rotatedSurfaceSize = Vector2(rotatedSurface.get_size())
         blitPos = self.pos - rotatedSurfaceSize * 0.5
         surface.blit(rotatedSurface, blitPos)
+    
+    def shoot(self):
+
+        pass
 
 class Boat(GameObject):
 
