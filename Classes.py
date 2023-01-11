@@ -370,7 +370,8 @@ class GameObject:
 
 class Player(GameObject):
 
-    CannonballSpeed = 2
+    CannonballSpeed = 40
+    angle = 0
 
     def __init__(self, pos, create_cannonball_callback):
         self.create_cannonball_callback = create_cannonball_callback
@@ -380,22 +381,62 @@ class Player(GameObject):
     def draw(self, surface):
 
         mouse_pos = pygame.mouse.get_pos()
-        angle = 360 - math.atan2(mouse_pos[1] - 190, mouse_pos[0] - 500) * 180 / math.pi
-        rotatedSurface = rotozoom(self.sprite, angle, 1.0)
+        self.angle = 360 - math.atan2(mouse_pos[1] - 190, mouse_pos[0] - 500) * 180 / math.pi
+        rotatedSurface = rotozoom(self.sprite, self.angle, 1.0)
         rotatedSurfaceSize = Vector2(rotatedSurface.get_size())
         blitPos = self.pos - rotatedSurfaceSize * 0.5
-        self.direction.rotate_ip(angle)
+        self.direction.rotate_ip(self.angle)
         surface.blit(rotatedSurface, blitPos)
+
+    def rotate(self):
+
+        mouse_pos = pygame.mouse.get_pos()
+        self.angle = 360 - math.atan2(mouse_pos[1] - 190, mouse_pos[0] - 500) * 180 / math.pi
+
+        self.direction.rotate_ip(self.angle)
     
     def shoot(self):
 
-        #mouse_pos = pygame.mouse.get_pos()
-        #angle = 360 - math.atan2(mouse_pos[1] - 190, mouse_pos[0] - 500) * 180 / math.pi
+        mouse_pos = pygame.mouse.get_pos()
+        self.angle = 360 - math.atan2(mouse_pos[1] - 190, mouse_pos[0] - 500) * 180 / math.pi
 
-        cannonballVelocity = self.direction * self.CannonballSpeed
+        cannonballVelocity = (self.direction[0] + self.CannonballSpeed * math.cos(self.angle))
+        + (self.direction[1] + self.CannonballSpeed * math.sin(self.angle) - 9.8 * 0.5)
         timeShot = pygame.time.get_ticks()
-        cannonball = Cannonball(self.pos, cannonballVelocity, timeShot)
+        cannonball = Cannonball(self.pos, cannonballVelocity, self.angle, timeShot)
         self.create_cannonball_callback(cannonball)
+
+class Cannonball(GameObject):
+    def __init__(self, pos, velocity, angle, timeShot):
+        super().__init__(pos, load_sprite("Bullet"), velocity)
+
+        self.timeShot = timeShot
+        self.angle = angle
+        self.gravity = (math.pi, 4.905)
+        self.drag = 0.002
+        self.x = self.pos[0]
+        self.y = self.pos[1]
+
+    def addVectors(self, angle1, length1, angle2, length2):
+
+        x = math.sin(angle1) * length1 + math.sin(angle2) * length2
+        y = math.cos(angle1) * length1 + math.cos(angle2) * length2
+
+        finalAngle = 0.5 * math.pi - math.atan2(y, x)
+        finalLength = math.hypot(x, y)
+
+        return (finalAngle, finalLength)
+
+    def move(self):
+ 
+        cannonballVel = self.velocity[1]
+        
+        (self.angle, cannonballVel) = self.addVectors(self.angle, cannonballVel, self.gravity[0], self.gravity[1])
+        
+        self.x = self.x + math.sin(self.angle) * cannonballVel
+        self.y = self.y - math.cos(self.angle) * cannonballVel
+        cannonballVel = cannonballVel * self.drag
+        self.pos = Vector2(self.x, self.y)
 
 class Boat(GameObject):
 
@@ -406,9 +447,3 @@ class Boat(GameObject):
         scale = size_scale[size]
         sprite = rotozoom(load_sprite("Boat"), 0, scale)
         super().__init__(pos, sprite)
-
-class Cannonball(GameObject):
-    def __init__(self, pos, velocity, timeShot):
-        super().__init__(pos, load_sprite("Bullet"), velocity)
-
-        self.timeShot = timeShot
