@@ -1,5 +1,6 @@
 import pygame
 import math
+import random
 from pygame.math import Vector2
 from pygame.transform import rotozoom
 from Functions import *
@@ -21,6 +22,10 @@ class HeavyOrdinance:
         self.boats = []
         self.boats.append(Boat((1050, 325), (1, 0), self.boats.append, 2))
         self.multiplier = 1
+        self.last_boat_shot = 0
+        self.spawn_interval = random.randrange(2000, 6000, 1000)
+        self.last_boat_made = 0
+        self.start_boats = True
 
         self.start = False
         self.mouse_button = None
@@ -136,15 +141,13 @@ class HeavyOrdinance:
                     self.cooldown = False
                     self.lastShot = pygame.time.get_ticks()
         
-
-
     def gameLogic(self):
 
         for gameObject in self.get_GameObject():
 
             gameObject.move()
 
-        for cannonball in  self.cannonballs[:]:
+        for cannonball in self.cannonballs[:]:
             timePassed = pygame.time.get_ticks()
             cannonballTime = cannonball.timeShot
             if timePassed >= cannonballTime + 4000:
@@ -154,10 +157,43 @@ class HeavyOrdinance:
         for cannonball in self.cannonballs[:]:
             for boat in self.boats:
                 if boat.collision(cannonball):
+                    self.last_boat_shot = pygame.time.get_ticks()
+                    self.spawn_interval = random.randrange(2000, 6000, 1000)
                     self.boats.remove(boat)
                     self.cannonballs.remove(cannonball)
                     self.addBoatScore(boat.size, self.multiplier)
 
+        for boat in self.boats[:]:
+            if boat.pos[0] <= 150:
+                self.boats.remove(boat)
+
+        if len(self.boats) < 4:
+
+            if self.start_boats == True:
+                timePassed = pygame.time.get_ticks()
+
+                if timePassed > (self.last_boat_made + self.spawn_interval):
+                    random_size = random.randint(1, 5)
+                    self.boats.append(Boat((1050, 325), (-1, 0), self.boats.append, random_size))
+                    self.last_boat_made = pygame.time.get_ticks()
+
+                if len(self.boats) == 3:
+
+                    self.start_boats = False
+                    self.last_boat_shot = pygame.time.get_ticks()
+
+            if self.start_boats == False:
+
+                timePassed = pygame.time.get_ticks()
+
+                if timePassed > (self.last_boat_shot + self.spawn_interval):
+                    random_size = random.randint(1, 5)
+                    self.boats.append(Boat((1050, 325), (-1, 0), self.boats.append, random_size))
+                    self.last_boat_shot = pygame.time.get_ticks()
+                    self.spawn_interval = random.randrange(2000, 6000, 1000)
+                    
+                
+                
     def draw(self):
 
         #self.screen.fill((0, 0, 20))
@@ -178,6 +214,7 @@ class HeavyOrdinance:
         self.score = self.score + boatScore * multiplier
 
     def gameOver(self):
+
         self.screen.fill((0, 0, 20))
 
         if self.lost == False:
@@ -350,6 +387,11 @@ class HeavyOrdinance:
         self.player = Player((50, 174), self.cannonballs.append)
         self.boats = []
         self.boats.append(Boat((1050, 335), (-1, 0), self.boats.append, 2))
+        self.multiplier = 1
+        self.last_boat_shot = 0
+        self.spawn_interval = random.randrange(2000, 6000, 1000)
+        self.last_boat_made = 0
+        self.start_boats = True
         
         self.cooldown = True
         self.lastshot = 0
@@ -421,6 +463,7 @@ class Player(GameObject):
         self.create_cannonball_callback(cannonball)
 
 class Cannonball(GameObject):
+
     def __init__(self, pos, velocity, angle, timeShot):
         super().__init__(pos, load_sprite("Cannonball"), velocity)
 
