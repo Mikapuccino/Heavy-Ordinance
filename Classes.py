@@ -19,7 +19,7 @@ class HeavyOrdinance:
         self.cannonballs = []
         self.player = Player((500, 190), self.cannonballs.append)
         self.boats = []
-        self.boats.append(Boat((300, 190), (1, 0), self.boats.append, 2))
+        self.boats.append(Boat((300, 320), (1, 0), self.boats.append, 2))
         self.multiplier = 1
 
         self.start = False
@@ -36,8 +36,6 @@ class HeavyOrdinance:
 
         self.up_pressed = False
         self.down_pressed = False
-
-    
 
     def get_GameObject(self):
 
@@ -70,7 +68,8 @@ class HeavyOrdinance:
 
         self.start = False
 
-        self.screen.fill((0, 0, 20))
+        #self.screen.fill((0, 0, 20))
+        self.screen.blit(load_sprite("Background"), (0, 0))
         text_in_line(self.screen, "HEAVY ORDINANCE", self.font, 40, "white")
         text_in_line(self.screen, "START", self.font, 280)
         text_in_line(self.screen, "EXIT", self.font, 340)
@@ -162,7 +161,8 @@ class HeavyOrdinance:
 
     def draw(self):
 
-        self.screen.fill((0, 0, 20))
+        #self.screen.fill((0, 0, 20))
+        self.screen.blit(load_sprite("Background"), (0, 0))
 
         for gameObject in self.get_GameObject():
             gameObject.draw(self.screen)
@@ -350,7 +350,7 @@ class HeavyOrdinance:
         self.cannonballs = []
         self.player = Player((500, 190), self.cannonballs.append)
         self.boats = []
-        self.boats.append(Boat((300, 190), (1, 0), self.boats.append, 2))
+        self.boats.append(Boat((300, 335), (1, 0), self.boats.append, 2))
         
 
         self.cooldown = True
