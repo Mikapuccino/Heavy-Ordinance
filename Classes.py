@@ -19,6 +19,8 @@ class HeavyOrdinance:
         self.cannonballs = []
         self.player = Player((500, 190), self.cannonballs.append)
         self.boats = []
+        self.boats.append(Boat((300, 190), (1, 0), self.boats.append, 2))
+        self.multiplier = 1
 
         self.start = False
         self.mouse_button = None
@@ -150,6 +152,13 @@ class HeavyOrdinance:
             if timePassed >= cannonballTime + 4000:
                 self.cannonballs.remove(cannonball)
                 break
+        
+        for cannonball in self.cannonballs[:]:
+            for boat in self.boats:
+                if boat.collision(cannonball):
+                    self.boats.remove(boat)
+                    self.cannonballs.remove(cannonball)
+                    self.addBoatScore(boat.size, self.multiplier)
 
     def draw(self):
 
@@ -163,6 +172,11 @@ class HeavyOrdinance:
 
         pygame.display.flip()
         self.clock.tick(60)
+
+    def addBoatScore(self, size_boat, multiplier):
+
+        boatScore = 6 - size_boat
+        self.score = self.score + boatScore * multiplier
 
     def gameOver(self):
         self.screen.fill((0, 0, 20))
@@ -336,6 +350,8 @@ class HeavyOrdinance:
         self.cannonballs = []
         self.player = Player((500, 190), self.cannonballs.append)
         self.boats = []
+        self.boats.append(Boat((300, 190), (1, 0), self.boats.append, 2))
+        
 
         self.cooldown = True
         self.lastshot = 0
@@ -408,7 +424,7 @@ class Player(GameObject):
 
 class Cannonball(GameObject):
     def __init__(self, pos, velocity, angle, timeShot):
-        super().__init__(pos, load_sprite("Bullet"), velocity)
+        super().__init__(pos, load_sprite("Cannonball"), velocity)
 
         self.timeShot = timeShot
         self.angle = angle
@@ -440,10 +456,9 @@ class Cannonball(GameObject):
 
 class Boat(GameObject):
 
-    def __init__(self, pos, boat_callback, size=3):
+    def __init__(self, pos, velocity, boat_callback, size=3):
+        self.velocity = velocity
         self.boat_callback = boat_callback
         self.size = size
-        size_scale = { 3:1, 2:0.5, 1:0.25 }
-        scale = size_scale[size]
-        sprite = rotozoom(load_sprite("Boat"), 0, scale)
-        super().__init__(pos, sprite)
+        sprite = rotozoom(load_sprite("Boat" + str(self.size)), 0, 1)
+        super().__init__(pos, sprite, velocity)
