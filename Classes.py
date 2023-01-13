@@ -17,9 +17,9 @@ class HeavyOrdinance:
         self.font = pygame.font.Font(None, 64)
         self.phrase = ""
         self.cannonballs = []
-        self.player = Player((500, 190), self.cannonballs.append)
+        self.player = Player((50, 174), self.cannonballs.append)
         self.boats = []
-        self.boats.append(Boat((300, 320), (1, 0), self.boats.append, 2))
+        self.boats.append(Boat((1050, 325), (1, 0), self.boats.append, 2))
         self.multiplier = 1
 
         self.start = False
@@ -68,7 +68,6 @@ class HeavyOrdinance:
 
         self.start = False
 
-        #self.screen.fill((0, 0, 20))
         self.screen.blit(load_sprite("Background"), (0, 0))
         text_in_line(self.screen, "HEAVY ORDINANCE", self.font, 40, "white")
         text_in_line(self.screen, "START", self.font, 280)
@@ -348,11 +347,10 @@ class HeavyOrdinance:
 
         self.phrase = ""
         self.cannonballs = []
-        self.player = Player((500, 190), self.cannonballs.append)
+        self.player = Player((50, 174), self.cannonballs.append)
         self.boats = []
-        self.boats.append(Boat((300, 335), (1, 0), self.boats.append, 2))
+        self.boats.append(Boat((1050, 335), (-1, 0), self.boats.append, 2))
         
-
         self.cooldown = True
         self.lastshot = 0
         self.lost = False
