@@ -376,12 +376,12 @@ class Player(GameObject):
     def __init__(self, pos, create_cannonball_callback):
         self.create_cannonball_callback = create_cannonball_callback
         self.direction = Vector2(UP)
-        super().__init__(pos, load_sprite("PlayerShip"), Vector2(0))
+        super().__init__(pos, load_sprite("PlayerCannon"), Vector2(0))
 
     def draw(self, surface):
 
         mouse_pos = pygame.mouse.get_pos()
-        self.angle = 360 - math.atan2(mouse_pos[1] - 190, mouse_pos[0] - 500) * 180 / math.pi
+        self.angle = 90 - math.atan2(mouse_pos[1] - 190, mouse_pos[0] - 500) * 180 / math.pi
         rotatedSurface = rotozoom(self.sprite, self.angle, 1.0)
         rotatedSurfaceSize = Vector2(rotatedSurface.get_size())
         blitPos = self.pos - rotatedSurfaceSize * 0.5
@@ -391,7 +391,7 @@ class Player(GameObject):
     def rotate(self):
 
         mouse_pos = pygame.mouse.get_pos()
-        self.angle = 360 - math.atan2(mouse_pos[1] - 190, mouse_pos[0] - 500) * 180 / math.pi
+        self.angle = 90 - math.atan2(mouse_pos[1] - 190, mouse_pos[0] - 500) * 180 / math.pi
 
         self.direction.rotate_ip(self.angle)
     
