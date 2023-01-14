@@ -30,6 +30,8 @@ class HeavyOrdinance:
         self.start = False
         self.mouse_button = None
         self.mouse_pos = None
+        self.isHolding = False
+        self.timeHeld = 0
         self.cooldown = True
         self.lastShot = 0
         self.lost = False
@@ -65,6 +67,13 @@ class HeavyOrdinance:
                 self.gameLogic()
                 self.draw()
 
+                if self.isHolding == True:
+                    self.timeHeld = self.timeHeld + 0.05
+
+                    if self.timeHeld >= 3:
+
+                        self.timeHeld = 3
+
     def initPygame(self):
 
         pygame.init()
@@ -72,17 +81,18 @@ class HeavyOrdinance:
     def main_menu(self):
 
         self.start = False
+        mouse_pos = pygame.mouse.get_pos()
 
         self.screen.blit(load_sprite("Background"), (0, 0))
         text_in_line(self.screen, "HEAVY ORDINANCE", self.font, 40, "white")
         text_in_line(self.screen, "START", self.font, 280)
         text_in_line(self.screen, "EXIT", self.font, 340)
 
-        if self.up_pressed == True:
+        if mouse_pos[0] > 430 and mouse_pos[0] < 570 and mouse_pos[1] > 260 and mouse_pos[1] < 295:
 
             text_in_line(self.screen, "START", self.font, 280, "tomato")
 
-        if self.down_pressed == True:
+        if mouse_pos[0] > 455 and mouse_pos[0] <= 555 and mouse_pos[1] > 320 and mouse_pos[1] < 355:
 
             text_in_line(self.screen, "EXIT", self.font, 340, "tomato")
 
@@ -92,27 +102,15 @@ class HeavyOrdinance:
             if (evt.type == pygame.QUIT):
                 quit()
 
-        if pygame.key.get_pressed()[pygame.K_UP] == True:
-            text_in_line(self.screen, "START", self.font, 280, "tomato")
-            text_in_line(self.screen, "EXIT", self.font, 340)
-            self.up_pressed = True
-            self.down_pressed = False
+            if evt.type == pygame.MOUSEBUTTONUP:
 
-        if pygame.key.get_pressed()[pygame.K_DOWN] == True:
-            text_in_line(self.screen, "EXIT", self.font, 340, "tomato")
-            text_in_line(self.screen, "START", self.font, 280)
-            self.down_pressed = True
-            self.up_pressed = False
+                if mouse_pos[0] > 455 and mouse_pos[0] <= 555 and mouse_pos[1] > 320 and mouse_pos[1] < 355:
+                    quit()
 
-        if pygame.key.get_pressed()[pygame.K_SPACE] == True:
-
-            if self.down_pressed == True:
-                quit()
-
-            if self.up_pressed == True:
-                self.start = True
-                self.end = False
-                self.restart()
+                if mouse_pos[0] > 430 and mouse_pos[0] < 570 and mouse_pos[1] > 260 and mouse_pos[1] < 295:
+                    self.start = True
+                    self.end = False
+                    self.restart()
 
         pygame.display.flip()
         self.clock.tick(60)
@@ -135,10 +133,16 @@ class HeavyOrdinance:
 
             if self.phrase != "GAME OVER":
 
+                if evt.type == pygame.MOUSEBUTTONDOWN and self.cooldown == True:
+
+                    self.isHolding = True
+                
                 if evt.type == pygame.MOUSEBUTTONUP and self.cooldown == True:
 
-                    self.player.shoot()
+                    self.isHolding = False
+                    self.player.shoot(self.timeHeld)
                     self.cooldown = False
+                    self.timeHeld = 0
                     self.lastShot = pygame.time.get_ticks()
         
     def gameLogic(self):
@@ -148,9 +152,7 @@ class HeavyOrdinance:
             gameObject.move()
 
         for cannonball in self.cannonballs[:]:
-            timePassed = pygame.time.get_ticks()
-            cannonballTime = cannonball.timeShot
-            if timePassed >= cannonballTime + 4000:
+            if cannonball.pos[0] < 0 or cannonball.pos[0] > 1000 or cannonball.pos[1] < 0 or cannonball.pos[1] > 380:
                 self.cannonballs.remove(cannonball)
                 break
         
@@ -196,7 +198,6 @@ class HeavyOrdinance:
                 
     def draw(self):
 
-        #self.screen.fill((0, 0, 20))
         self.screen.blit(load_sprite("Background"), (0, 0))
 
         for gameObject in self.get_GameObject():
@@ -393,6 +394,8 @@ class HeavyOrdinance:
         self.last_boat_made = 0
         self.start_boats = True
         
+        self.isHolding = False
+        self.timeHeld = 0
         self.cooldown = True
         self.lastshot = 0
         self.lost = False
@@ -426,7 +429,6 @@ class GameObject:
 
 class Player(GameObject):
 
-    CannonballSpeed = 40
     angle = 0
 
     def __init__(self, pos, create_cannonball_callback):
@@ -437,7 +439,11 @@ class Player(GameObject):
     def draw(self, surface):
 
         mouse_pos = pygame.mouse.get_pos()
-        self.angle = 90 - math.atan2(mouse_pos[1] - 190, mouse_pos[0] - 500) * 180 / math.pi
+        self.angle = 90 - math.atan2(mouse_pos[1] - 206, mouse_pos[0] - 50) * 180 / math.pi
+        if self.angle < 100 and self.angle > -90:
+            self.angle = 100
+        if self.angle < 269 and self.angle > 180:
+            self.angle = 180
         rotatedSurface = rotozoom(self.sprite, self.angle, 1.0)
         rotatedSurfaceSize = Vector2(rotatedSurface.get_size())
         blitPos = self.pos - rotatedSurfaceSize * 0.5
@@ -447,17 +453,18 @@ class Player(GameObject):
     def rotate(self):
 
         mouse_pos = pygame.mouse.get_pos()
-        self.angle = 90 - math.atan2(mouse_pos[1] - 190, mouse_pos[0] - 500) * 180 / math.pi
+        self.angle = 90 - math.atan2(mouse_pos[1] - 206, mouse_pos[0] - 50) * 180 / math.pi
 
         self.direction.rotate_ip(self.angle)
     
-    def shoot(self):
+    def shoot(self, timeHeld):
 
         mouse_pos = pygame.mouse.get_pos()
-        self.angle = 360 - math.atan2(mouse_pos[1] - 190, mouse_pos[0] - 500) * 180 / math.pi
+        self.angle = 90 - math.atan2(mouse_pos[1] - 206, mouse_pos[0] - 50) * 180 / math.pi
+        shotForce = timeHeld * 10
 
-        cannonballVelocity = (self.direction[0] + self.CannonballSpeed * math.cos(self.angle))
-        + (self.direction[1] + self.CannonballSpeed * math.sin(self.angle) - 9.8 * 0.5)
+        cannonballVelocity = (self.direction[0] + shotForce * math.cos(self.angle))
+        + (self.direction[1] + shotForce * math.sin(self.angle) - 9.81 * 0.002)
         timeShot = pygame.time.get_ticks()
         cannonball = Cannonball(self.pos, cannonballVelocity, self.angle, timeShot)
         self.create_cannonball_callback(cannonball)
@@ -469,7 +476,7 @@ class Cannonball(GameObject):
 
         self.timeShot = timeShot
         self.angle = angle
-        self.gravity = (math.pi, 4.905)
+        self.gravity = (math.pi, 9.81)
         self.drag = 0.002
         self.x = self.pos[0]
         self.y = self.pos[1]
