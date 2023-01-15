@@ -20,7 +20,6 @@ class HeavyOrdinance:
         self.cannonballs = []
         self.player = Player((50, 174), self.cannonballs.append)
         self.boats = []
-        self.boats.append(Boat((1050, 325), (1, 0), self.boats.append, 2))
         self.multiplier = 1
         self.last_boat_shot = 0
         self.spawn_interval = random.randrange(2000, 6000, 1000)
@@ -139,6 +138,11 @@ class HeavyOrdinance:
                 
                 if evt.type == pygame.MOUSEBUTTONUP and self.cooldown == True:
 
+                    if len(self.cannonballs) == 2:
+                        self.isHolding = False
+                        self.timeHeld = 0
+                        return
+                    
                     self.isHolding = False
                     self.player.shoot(self.timeHeld)
                     self.cooldown = False
@@ -147,6 +151,8 @@ class HeavyOrdinance:
         
     def gameLogic(self):
 
+        boatSpawnPos = (0, 0)
+        
         for gameObject in self.get_GameObject():
 
             gameObject.move()
@@ -176,7 +182,17 @@ class HeavyOrdinance:
 
                 if timePassed > (self.last_boat_made + self.spawn_interval):
                     random_size = random.randint(1, 5)
-                    self.boats.append(Boat((1050, 325), (-1, 0), self.boats.append, random_size))
+                    if random_size == 1:
+                        boatSpawnPos = (1050, 322)
+                    if random_size == 2:
+                        boatSpawnPos = (1050, 335)
+                    if random_size == 3:
+                        boatSpawnPos = (1050, 347)
+                    if random_size == 4:
+                        boatSpawnPos = (1050, 359)
+                    if random_size == 5:
+                        boatSpawnPos = (1050, 371)
+                    self.boats.append(Boat(boatSpawnPos, (-1, 0), self.boats.append, random_size))
                     self.last_boat_made = pygame.time.get_ticks()
 
                 if len(self.boats) == 3:
@@ -190,13 +206,25 @@ class HeavyOrdinance:
 
                 if timePassed > (self.last_boat_shot + self.spawn_interval):
                     random_size = random.randint(1, 5)
-                    self.boats.append(Boat((1050, 325), (-1, 0), self.boats.append, random_size))
+                    if random_size == 1:
+                        boatSpawnPos = (1050, 322)
+                    if random_size == 2:
+                        boatSpawnPos = (1050, 335)
+                    if random_size == 3:
+                        boatSpawnPos = (1050, 347)
+                    if random_size == 4:
+                        boatSpawnPos = (1050, 359)
+                    if random_size == 5:
+                        boatSpawnPos = (1050, 371)
+                    self.boats.append(Boat(boatSpawnPos, (-1, 0), self.boats.append, random_size))
                     self.last_boat_shot = pygame.time.get_ticks()
                     self.spawn_interval = random.randrange(2000, 6000, 1000)
                 
     def draw(self):
 
         self.screen.blit(load_sprite("Background"), (0, 0))
+
+        text_in_pos(self.screen, "SCORE: " + str(self.score), self.font, (830, 50))
 
         for gameObject in self.get_GameObject():
             gameObject.draw(self.screen)
@@ -385,7 +413,6 @@ class HeavyOrdinance:
         self.cannonballs = []
         self.player = Player((50, 174), self.cannonballs.append)
         self.boats = []
-        self.boats.append(Boat((1050, 335), (-1, 0), self.boats.append, 2))
         self.multiplier = 1
         self.last_boat_shot = 0
         self.spawn_interval = random.randrange(2000, 6000, 1000)
@@ -467,7 +494,7 @@ class Player(GameObject):
             self.angle = 100
         if self.angle < 269 and self.angle > 180:
             self.angle = 180
-        shotForce = timeHeld * 2
+        shotForce = 1 + timeHeld * 5
         timeShot = pygame.time.get_ticks()
         cannonball = Cannonball(self.pos, shotForce, self.angle, timeShot)
         self.create_cannonball_callback(cannonball)
@@ -480,7 +507,6 @@ class Cannonball(GameObject):
         self.timeShot = timeShot
         self.angle = angle
         self.gravity = (math.pi, 0.05)
-        self.direction = Vector2(UP)
         self.drag = 0.999
         self.speed = self.velocity[0]
         self.x = self.pos[0]
@@ -493,6 +519,11 @@ class Cannonball(GameObject):
 
         finalAngle = 0.5 * math.pi - math.atan2(y, x)
         finalLength = math.hypot(x, y)
+        if finalAngle < 0:
+            finalAngle = -finalAngle
+
+        if finalLength < 0:
+            finalLength = -finalLength
 
         return (finalAngle, finalLength)
 

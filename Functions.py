@@ -33,3 +33,12 @@ def text_in_line(surface, text, font, pos, color=Color("white")):
     rect.center = Vector2(500, pos)
 
     surface.blit(textSurface, rect)
+
+def text_in_pos(surface, text, font, pos, color=Color("black")):
+
+    checkText = text.strip()
+    textSurface = font.render(checkText, True, color)
+    rect = textSurface.get_rect()
+    rect.center = Vector2(pos[0], pos[1])
+
+    surface.blit(textSurface, rect)
