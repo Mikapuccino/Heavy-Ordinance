@@ -25,6 +25,8 @@ class HeavyOrdinance:
         self.spawn_interval = random.randrange(2000, 6000, 1000)
         self.last_boat_made = 0
         self.start_boats = True
+        self.boats_destroyed = 0
+        self.boats_danger = 0
 
         self.start = False
         self.mouse_button = None
@@ -170,10 +172,18 @@ class HeavyOrdinance:
                     self.boats.remove(boat)
                     self.cannonballs.remove(cannonball)
                     self.addBoatScore(boat.size, self.multiplier)
+                    self.boats_destroyed += 1
+
+                    if self.boats_destroyed == 10:
+                        self.multiplier += 1
 
         for boat in self.boats[:]:
             if boat.pos[0] <= 150:
                 self.boats.remove(boat)
+                self.boats_danger += 1
+
+                if self.boats_danger == 3:
+                    self.phrase = "GAME OVER"
 
         if len(self.boats) < 4:
 
@@ -254,7 +264,7 @@ class HeavyOrdinance:
 
         text(self.screen, self.phrase, self.font)
 
-        if timePassed >= self.diedTime + 4000:
+        if timePassed >= self.lostTime + 4000:
 
             self.screen.fill((0, 0, 20))
             
@@ -418,6 +428,8 @@ class HeavyOrdinance:
         self.spawn_interval = random.randrange(2000, 6000, 1000)
         self.last_boat_made = 0
         self.start_boats = True
+        self.boats_destroyed = 0
+        self.boats_danger = 0
         
         self.isHolding = False
         self.timeHeld = 0
