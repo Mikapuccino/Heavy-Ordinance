@@ -152,7 +152,7 @@ class HeavyOrdinance:
             gameObject.move()
 
         for cannonball in self.cannonballs[:]:
-            if cannonball.pos[0] < 0 or cannonball.pos[0] > 1000 or cannonball.pos[1] < 0 or cannonball.pos[1] > 380:
+            if cannonball.pos[0] < 0 or cannonball.pos[0] > 1000 or cannonball.pos[1] > 380:
                 self.cannonballs.remove(cannonball)
                 break
         
@@ -193,8 +193,6 @@ class HeavyOrdinance:
                     self.boats.append(Boat((1050, 325), (-1, 0), self.boats.append, random_size))
                     self.last_boat_shot = pygame.time.get_ticks()
                     self.spawn_interval = random.randrange(2000, 6000, 1000)
-                    
-                
                 
     def draw(self):
 
@@ -454,6 +452,10 @@ class Player(GameObject):
 
         mouse_pos = pygame.mouse.get_pos()
         self.angle = 90 - math.atan2(mouse_pos[1] - 206, mouse_pos[0] - 50) * 180 / math.pi
+        if self.angle < 100 and self.angle > -90:
+            self.angle = 100
+        if self.angle < 269 and self.angle > 180:
+            self.angle = 180
 
         self.direction.rotate_ip(self.angle)
     
@@ -461,12 +463,13 @@ class Player(GameObject):
 
         mouse_pos = pygame.mouse.get_pos()
         self.angle = 90 - math.atan2(mouse_pos[1] - 206, mouse_pos[0] - 50) * 180 / math.pi
-        shotForce = timeHeld * 10
-
-        cannonballVelocity = (self.direction[0] + shotForce * math.cos(self.angle))
-        + (self.direction[1] + shotForce * math.sin(self.angle) - 9.81 * 0.002)
+        if self.angle < 100 and self.angle > -90:
+            self.angle = 100
+        if self.angle < 269 and self.angle > 180:
+            self.angle = 180
+        shotForce = timeHeld * 2
         timeShot = pygame.time.get_ticks()
-        cannonball = Cannonball(self.pos, cannonballVelocity, self.angle, timeShot)
+        cannonball = Cannonball(self.pos, shotForce, self.angle, timeShot)
         self.create_cannonball_callback(cannonball)
 
 class Cannonball(GameObject):
@@ -476,8 +479,10 @@ class Cannonball(GameObject):
 
         self.timeShot = timeShot
         self.angle = angle
-        self.gravity = (math.pi, 9.81)
-        self.drag = 0.002
+        self.gravity = (math.pi, 0.05)
+        self.direction = Vector2(UP)
+        self.drag = 0.999
+        self.speed = self.velocity[0]
         self.x = self.pos[0]
         self.y = self.pos[1]
 
@@ -493,14 +498,11 @@ class Cannonball(GameObject):
 
     def move(self):
  
-        cannonballVel = self.velocity[1]
-        
-        (self.angle, cannonballVel) = self.addVectors(self.angle, cannonballVel, self.gravity[0], self.gravity[1])
-        
-        self.x = self.x + math.sin(self.angle) * cannonballVel
-        self.y = self.y - math.cos(self.angle) * cannonballVel
-        cannonballVel = cannonballVel * self.drag
-        self.pos = Vector2(self.x, self.y)
+        (self.angle, self.speed) = self.addVectors(self.angle, self.speed, self.gravity[0], self.gravity[1])
+        self.x += math.sin(self.angle) * self.speed
+        self.y -= math.cos(self.angle) * self.speed
+        self.pos = (self.x, self.y)
+        self.speed *= self.drag
 
 class Boat(GameObject):
 
