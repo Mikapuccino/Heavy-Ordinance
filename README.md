@@ -8,7 +8,7 @@ Project 3 by Daniela Gameiro nº 21901681 and Nelson Milheiro nº 21904365.
 ##  Project credits
 * Daniela Gameiro
 
-  1. Gameplay - Canon (player rotation)
+  1. Gameplay - Cannon (player rotation)
   2. Gameplay - Boats (collison and spawn frequency)
   3. Game Score
   4. Game Over
@@ -16,7 +16,15 @@ Project 3 by Daniela Gameiro nº 21901681 and Nelson Milheiro nº 21904365.
 
 * Nelson Milheiro
 
-  1. 
+  1. Gameplay - Cannon (Shoot, cannonball physics)
+  2. Gameplay - Boats (Movement and spawn positions)
+  3. Gameplay - HeavyOrdinance Class (Main loop, main menu, input logic, draw)
+  4. Leaderboard - Leaderboard reading, writing and editing
+  5. Sprites - All sprites used
+  6. Background - Background image
+  7. Sfx - All sound effects used (BoatDanger, BoatHit, CannonShot, GameOver)
+  8. Music - Music used in the game (pirate)
+  9. Additional Functions - All additional functions (load_sprite, text, text_in_line, text_in_pos)
 
 ## Solution architecture
 
