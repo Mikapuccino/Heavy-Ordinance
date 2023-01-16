@@ -29,6 +29,11 @@ class HeavyOrdinance:
         self.boats_danger = 0
 
         self.start = False
+        self.musicPlaying = False
+        self.ShotFX = pygame.mixer.Sound("CannonShot.wav")
+        self.BoatDangerFX = pygame.mixer.Sound("BoatDanger.wav")
+        self.BoatHitFX = pygame.mixer.Sound("BoatHit.wav")
+        self.GameOverFX = pygame.mixer.Sound("GameOver.wav")
         self.mouse_button = None
         self.mouse_pos = None
         self.isHolding = False
@@ -64,6 +69,10 @@ class HeavyOrdinance:
 
             if self.end == False and self.start == True:
 
+                if self.musicPlaying == False and self.phrase != "GAME OVER":
+                    pygame.mixer.music.load("pirate.wav")
+                    pygame.mixer.music.play(-1)
+                    self.musicPlaying = True
                 self.inputLogic()
                 self.gameLogic()
                 self.draw()
@@ -145,6 +154,7 @@ class HeavyOrdinance:
                         self.timeHeld = 0
                         return
                     
+                    self.ShotFX.play()
                     self.isHolding = False
                     self.player.shoot(self.timeHeld)
                     self.cooldown = False
@@ -167,6 +177,7 @@ class HeavyOrdinance:
         for cannonball in self.cannonballs[:]:
             for boat in self.boats:
                 if boat.collision(cannonball):
+                    self.BoatHitFX.play()
                     self.last_boat_shot = pygame.time.get_ticks()
                     self.spawn_interval = random.randrange(2000, 6000, 1000)
                     self.boats.remove(boat)
@@ -179,6 +190,7 @@ class HeavyOrdinance:
 
         for boat in self.boats[:]:
             if boat.pos[0] <= 150:
+                self.BoatDangerFX.play()
                 self.boats.remove(boat)
                 self.boats_danger += 1
 
@@ -253,6 +265,11 @@ class HeavyOrdinance:
     def gameOver(self):
 
         self.screen.fill((0, 0, 20))
+        
+        if self.musicPlaying == True:
+            pygame.mixer.music.stop()
+            self.GameOverFX.play()
+            self.musicPlaying = False
 
         if self.lost == False:
             self.lostTime = pygame.time.get_ticks()
@@ -426,11 +443,12 @@ class HeavyOrdinance:
         self.multiplier = 1
         self.last_boat_shot = 0
         self.spawn_interval = random.randrange(2000, 6000, 1000)
+        
+        self.musicPlaying = False
         self.last_boat_made = 0
         self.start_boats = True
         self.boats_destroyed = 0
         self.boats_danger = 0
-        
         self.isHolding = False
         self.timeHeld = 0
         self.cooldown = True
