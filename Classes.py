@@ -5,12 +5,21 @@ from pygame.math import Vector2
 from pygame.transform import rotozoom
 from Functions import *
 
+# This file is used to create all the classes the game will use,
+# additionally being used to run the entire game inside the classes
+
+# This variable is used to define the up angle, this being pointed directly up
 
 UP = Vector2(0, -1)
+
+# This class is the main one that is used to run the whole game
+# The main logic for the game is all contained within this class
 
 class HeavyOrdinance:
 
     def __init__(self):
+
+        # Defines every variable the game needs
 
         self.initPygame()
         self.screen = pygame.display.set_mode((1000, 380))
@@ -50,6 +59,8 @@ class HeavyOrdinance:
         self.up_pressed = False
         self.down_pressed = False
 
+    # This function detects all game objects that exist
+    
     def get_GameObject(self):
 
         gameObjects = [*self.cannonballs, *self.boats]
@@ -59,6 +70,8 @@ class HeavyOrdinance:
 
         return gameObjects
 
+    # Main game loop
+    
     def main(self):
 
         while True:
@@ -77,6 +90,10 @@ class HeavyOrdinance:
                 self.gameLogic()
                 self.draw()
 
+                # Used to determine the strength of the cannon shot
+                # depending for how long the player holds the button
+                # Reaches max strength in 3 seconds
+                
                 if self.isHolding == True:
                     self.timeHeld = self.timeHeld + 0.05
 
@@ -84,10 +101,15 @@ class HeavyOrdinance:
 
                         self.timeHeld = 3
 
+    # This is only used to initiate pygame
+    
     def initPygame(self):
 
         pygame.init()
 
+    # This function is used to display the main menu and to do
+    # the option the player selects
+    
     def main_menu(self):
 
         self.start = False
@@ -125,6 +147,9 @@ class HeavyOrdinance:
         pygame.display.flip()
         self.clock.tick(60)
 
+    # This function is used to detect the player's inputs during the game
+    # and make the appropriate action
+    
     def inputLogic(self):
 
         events = pygame.event.get()
@@ -161,6 +186,10 @@ class HeavyOrdinance:
                     self.timeHeld = 0
                     self.lastShot = pygame.time.get_ticks()
         
+    # This function is used to move all objects and detect collisions between objects
+    # and doing the appropriate action for each collision
+    # Also used to destroy boats that reach the danger zone and check if a game over has happened
+    
     def gameLogic(self):
 
         boatSpawnPos = (0, 0)
@@ -169,10 +198,14 @@ class HeavyOrdinance:
 
             gameObject.move()
 
+        # If cannonball goes off the screen to the left, right or bottom, it is destroyed
+        
         for cannonball in self.cannonballs[:]:
             if cannonball.pos[0] < 0 or cannonball.pos[0] > 1000 or cannonball.pos[1] > 380:
                 self.cannonballs.remove(cannonball)
                 break
+        
+        # If cannonball collides with boat, they are both destroyed and score is incremented by an amount
         
         for cannonball in self.cannonballs[:]:
             for boat in self.boats:
@@ -188,6 +221,8 @@ class HeavyOrdinance:
                     if self.boats_destroyed == 10:
                         self.multiplier += 1
 
+        # If boat reaches danger zone, it is destroyed. If 3 boats reached the danger zone, it's game over
+
         for boat in self.boats[:]:
             if boat.pos[0] <= 150:
                 self.BoatDangerFX.play()
@@ -197,6 +232,9 @@ class HeavyOrdinance:
                 if self.boats_danger == 3:
                     self.phrase = "GAME OVER"
 
+        # If there aren't 4 boats on screen, creates boats on a random interval
+        # If there are 4 boats on screen, waits until a boat is destroyed
+        
         if len(self.boats) < 4:
 
             if self.start_boats == True:
@@ -241,7 +279,11 @@ class HeavyOrdinance:
                     self.boats.append(Boat(boatSpawnPos, (-1, 0), self.boats.append, random_size))
                     self.last_boat_shot = pygame.time.get_ticks()
                     self.spawn_interval = random.randrange(2000, 6000, 1000)
-                
+
+    # This functions is used to properly display each object
+    # on the screen, with proper orientation, and to detect
+    # if it's game over, calling the gameOver function  
+
     def draw(self):
 
         self.screen.blit(load_sprite("Background"), (0, 0))
@@ -257,11 +299,18 @@ class HeavyOrdinance:
         pygame.display.flip()
         self.clock.tick(60)
 
+    # This function is used to calculate how many points the player got for destroying a boat
+    # Uses the current multiplier in the game and checks the boat size
+    
     def addBoatScore(self, size_boat, multiplier):
 
         boatScore = 6 - size_boat
         self.score = self.score + boatScore * multiplier
 
+    # This function is used to display the game over screen and call the leaderboard
+    # screen, asking for an input from the player if they got a better score
+    # than one of the best 10 scores
+    
     def gameOver(self):
 
         self.screen.fill((0, 0, 20))
@@ -434,6 +483,9 @@ class HeavyOrdinance:
             ended = True
             return(ended)
 
+    # This function is used to restart the game every time the player
+    # chooses start in the main menu
+    
     def restart(self):
 
         self.phrase = ""
@@ -459,6 +511,9 @@ class HeavyOrdinance:
         self.show = True
         self.timeLeaderboard = 0
 
+# This class is inherited by every other game object
+# Used to define functions and variables that all game objects use
+
 class GameObject:
 
     def __init__(self, pos, sprite, velocity):
@@ -468,19 +523,28 @@ class GameObject:
         self.velocity = Vector2(velocity)
         self.radius = sprite.get_width() / 2
 
+    # Used to draw the object on the screen
+
     def draw(self, surface):
 
         blitPos = self.pos - Vector2(self.radius)
         surface.blit(self.sprite, blitPos)
 
+    # Used to move the object on the screen
+    
     def move(self):
 
         self.pos = self.pos + self.velocity
 
+    # Used to detect if there was a collision
+    
     def collision(self, otherObj):
 
         distance = self.pos.distance_to(otherObj.pos)
         return distance < self.radius + otherObj.radius
+
+# This class is used for the player, used to check the angle of the cannon,
+# determine the shot strength and direction, and shoot cannonballs
 
 class Player(GameObject):
 
@@ -491,6 +555,8 @@ class Player(GameObject):
         self.direction = Vector2(UP)
         super().__init__(pos, load_sprite("PlayerCannon"), Vector2(0))
 
+    # Used to display the player sprite with the proper rotation
+    
     def draw(self, surface):
 
         mouse_pos = pygame.mouse.get_pos()
@@ -505,6 +571,8 @@ class Player(GameObject):
         self.direction.rotate_ip(self.angle)
         surface.blit(rotatedSurface, blitPos)
 
+    # Used to properly rotate the player and the sprite
+    
     def rotate(self):
 
         mouse_pos = pygame.mouse.get_pos()
@@ -515,6 +583,9 @@ class Player(GameObject):
             self.angle = 180
 
         self.direction.rotate_ip(self.angle)
+    
+    # Used to shoot cannonballs at the angle the cannon is rotated,
+    # with speed depending on the strength of the shot.
     
     def shoot(self, timeHeld):
 
@@ -529,6 +600,10 @@ class Player(GameObject):
         cannonball = Cannonball(self.pos, shotForce, self.angle, timeShot)
         self.create_cannonball_callback(cannonball)
 
+# This class is used for cannonballs, defining the time at which the cannonball was fired,
+# which is used to determine the cooldown of the cannon, the strength and direction it has.
+# Each cannonball calculates where it should be, depending on the gravity set
+
 class Cannonball(GameObject):
 
     def __init__(self, pos, velocity, angle, timeShot):
@@ -542,6 +617,9 @@ class Cannonball(GameObject):
         self.x = self.pos[0]
         self.y = self.pos[1]
 
+    # This function is used to determine the direction the cannonball should move in,
+    # Using its current angle and speed and the gravity set
+    
     def addVectors(self, angle1, length1, angle2, length2):
 
         x = math.sin(angle1) * length1 + math.sin(angle2) * length2
@@ -557,6 +635,8 @@ class Cannonball(GameObject):
 
         return (finalAngle, finalLength)
 
+    # This function is used to properly move the cannonball to the correct position
+    
     def move(self):
  
         (self.angle, self.speed) = self.addVectors(self.angle, self.speed, self.gravity[0], self.gravity[1])
@@ -564,6 +644,8 @@ class Cannonball(GameObject):
         self.y -= math.cos(self.angle) * self.speed
         self.pos = (self.x, self.y)
         self.speed *= self.drag
+
+# This class is used for boats, only defining their velocity and size
 
 class Boat(GameObject):
 
